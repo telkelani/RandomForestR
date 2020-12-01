@@ -17,6 +17,7 @@
 # 1.04 30/11/2020 Added Outlier removal
 # 1.05 01/12/2020 Added different modes (A,B,C,D)
 # 1.05 01/12/2020 Added main function
+# 1.06 01/12/2020 Added Cross Validation Display
 # ************************************************
 
 library(caret)
@@ -78,17 +79,19 @@ RfRegressor = function(dataset,mode){
   training_records = sample(1:nrow(dataset), size=0.75*nrow(dataset))
   training_data = dataset[training_records,]
   testing_data = dataset[-training_records,]
-  View(testing_data)
   
   # Random Forest Training + Cross Validation
   crossVal = trainControl(method="cv", number=10) #10-fold Cv
   
-  # rf = train(formular, data=training_data, method="rf",
-             #ntree=500, trControl=crossVal, importance=TRUE)
+  rf = train(formular, data=training_data, method="rf",
+             ntree=500, trControl=crossVal, importance=TRUE)
   
   # If you want to compare OOB with CV use this model
-  rfOOB = randomForest(formular, data=training_data, mtry=rf$finalModel$mtry)
-  print(rfOOB)
+  #rfOOB = randomForest(formular, data=training_data, mtry=rf$finalModel$mtry)
+  #print(rfOOB)
+  
+  ##Display CV Results
+  print(formattable(rf$resample))
   ##Predicting outcome
   prediction = predict(rfOOB,testing_data)
   
@@ -96,7 +99,6 @@ RfRegressor = function(dataset,mode){
   mae = mean(abs(error))
   mse = mean((error^2))
   rmse = round(sqrt(mse),2)
-  print(rmse)
   
   ##Training error
   
@@ -120,10 +122,11 @@ RfRegressor = function(dataset,mode){
 
 main = function(){
   dataset_math = read.csv("student-mat.csv",sep=";")
-  RfRegressor(dataset_math,"A")
-  RfRegressor(dataset_math,"B")
-  RfRegressor(dataset_math,"C")
-  RfRegressor(dataset_math,"D")
+  # RfRegressor(dataset_math,"A")
+  # RfRegressor(dataset_math,"B")
+  # RfRegressor(dataset_math,"C")
+  # RfRegressor(dataset_math,"D")
+  dataset_por=read.csv("student-por.csv",sep=";")
 }
 
 main()

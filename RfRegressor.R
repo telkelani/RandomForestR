@@ -18,6 +18,7 @@
 # 1.05 01/12/2020 Added different modes (A,B,C,D)
 # 1.05 01/12/2020 Added main function
 # 1.06 01/12/2020 Added Cross Validation Display
+# 1.06 01/12/2020 Added MAPE metric
 # ************************************************
 
 library(caret)
@@ -69,10 +70,10 @@ RfRegressor = function(dataset,mode){
     formula_string = "G3 ~.-G1-G2"
   }
   else if (mode == 'B'){
-    formula_string = "G3 ~.-G1"
+    formula_string = "G3 ~.-G2"
   }
   formular = as.formula(formula_string)
-
+  print(formula_string)
   
   ##Setup training and testing data (we will see if CV is needed)
   #Setting training and testing records
@@ -87,34 +88,37 @@ RfRegressor = function(dataset,mode){
              ntree=500, trControl=crossVal, importance=TRUE)
   
   # If you want to compare OOB with CV use this model
-  #rfOOB = randomForest(formular, data=training_data, mtry=rf$finalModel$mtry)
+  #rf = randomForest(formular, data=training_data, mtry=rf$finalModel$mtry)
   #print(rfOOB)
   
   ##Display CV Results
-  print(formattable(rf$resample))
+  #print(formattable(rf$resample))
   ##Predicting outcome
-  prediction = predict(rfOOB,testing_data)
+  prediction = predict(rf,testing_data)
   
   error = prediction - testing_data$G3
   mae = mean(abs(error))
   mse = mean((error^2))
   rmse = round(sqrt(mse),2)
+  mape = mean(abs(testing_data$G3 - prediction)/testing_data$G3)*100
   
   ##Training error
   
   RMSE_TRAINING = round(min(rf$results$RMSE),2)
   chosen_model = which(rf$results$RMSE == min(rf$results$RMSE))
   MAE_TRAINING = round(rf$results$MAE[chosen_model],2)
+  MAPE_TRAINING = mean(abs((training_data$G3-rf$finalModel$predicted)/training_data$G3)) * 100
   
   # Displaying Results
   testing_results = data.frame(
     MAE = c(round(mae,2),MAE_TRAINING),
     MSE = c(round(mse,2),round(RMSE_TRAINING^2,2)),
     RMSE = c(rmse,RMSE_TRAINING),
+    MAPE = c(round(mape,2),round(MAPE_TRAINING,2)),
     row.names=c("Testing Error","Training Error")
   )
   print(formattable(testing_results,"Test Metrics"))
-  
+  print(rf$finalModel)
   #Importance plots
   varImpPlot(rf$finalModel, n.var=10, main="Importance of Variables in Random Forest Regressor")
   
@@ -125,8 +129,9 @@ main = function(){
   # RfRegressor(dataset_math,"A")
   # RfRegressor(dataset_math,"B")
   # RfRegressor(dataset_math,"C")
-  # RfRegressor(dataset_math,"D")
+  #RfRegressor(dataset_math,"D")
   dataset_por=read.csv("student-por.csv",sep=";")
+  RfRegressor(dataset_por,"D")
 }
 
 main()

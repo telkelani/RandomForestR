@@ -257,7 +257,8 @@ RFClassifier = function(data, mode){
   library(e1071)
   library(DMwR)
   #Balance the dataset, by creating synthetic records to balance the failures and the successes
-  balanced = DMwR::SMOTE(formular, data=train_data, perc.over=100)
+  #Best results were Maths: perc.over=94,perc.under=740 , Por: perc.over=100,perc.under=210
+  balanced = DMwR::SMOTE(formular, data=train_data, perc.over=94,perc.under=740)
   #Cross Validation
   indexforCV = createFolds(balanced$passed,k=10,returnTrain = T)
   
